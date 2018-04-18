@@ -7,7 +7,7 @@ def dependencies():
         git_repository(
             name = "com_github_mingkaic_tenncor",
             remote = "https://github.com/mingkaic/tenncor",
-            commit = "efb8c7903b9aaef08360ed0302250c0c591f7c81",
+            commit = "9023ee19972dbab768195c2a2a7438da6b4f0476",
         )
 
     if "com_github_mingkaic_go_tenncor" not in native.existing_rules():

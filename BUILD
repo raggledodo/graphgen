@@ -13,14 +13,16 @@ py_binary(
     srcs = ["tfgen.py"],
     deps = [
         requirement("grpcio"),
-        "@com_github_mingkaic_tenncor//tests/py:tenncorgen",
+        "@com_github_mingkaic_tenncor//proto:tenncor_serial_py_proto",
         "@com_github_mingkaic_tenncor//tests/graphmgr:graphmgr_py_grpc",
+        "@com_github_mingkaic_tenncor//tests/py:tenncorgen",
+        "@com_github_mingkaic_testify//py:graphast",
     ],
 )
 
 # generator
 gazelle(
     name = "gazelle",
-    # external = "vendored",
+    external = "vendored",
     prefix = "github.com/raggledodo/graphmgr",
 )

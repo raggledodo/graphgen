@@ -1,26 +1,68 @@
 package main
 
 import (
-	"os/exec"
-
-	"github.com/robfig/cron"
-
-	log "github.com/sirupsen/logrus"
+	"time"
 )
 
-var tfGenCmd = []string{"./tfgen", "--host", "127.0.0.1:50051"}
+type CronMap interface {
+	Run()
+	AddCmd(string, func() []string, time.Duration)
+	Stop(string)
+	StopAll()
+}
 
-func NewCron(schedule cron.Schedule) *cron.Cron {
-	job := cron.New()
-	job.Schedule(schedule, cron.FuncJob(func() {
-		log.Infof("Running command %v", tfGenCmd)
-		cmd := exec.Command(tfGenCmd[0], tfGenCmd[1:]...)
-		msg, err := cmd.Output()
-		if err != nil {
-			log.Errorf("Command %v error: %v", tfGenCmd, err)
-		} else {
-			log.Infof("Command output: %s", string(msg))
+type CmdMap struct {
+	jobs    map[string]*Job
+	running bool
+}
+
+type Job struct {
+	term chan struct{}
+	run  func()
+}
+
+func NewCronMap() CronMap {
+	return &CmdMap{jobs: make(map[string]*Job)}
+}
+
+func (cmds *CmdMap) Run() {
+	cmds.running = true
+	for _, job := range cmds.jobs {
+		go job.run()
+	}
+}
+
+func (cmds *CmdMap) AddCmd(key string, getCmds func() []string, freq time.Duration) {
+	term := make(chan struct{})
+	run := func() {
+		tock := time.Tick(freq)
+		for {
+			select {
+			case <-tock:
+				cmd := getCmds()
+				runCmd(cmd)
+			case <-term:
+				return
+			}
 		}
-	}))
-	return job
+	}
+	if cmds.running {
+		go run()
+	}
+	cmds.jobs[key] = &Job{
+		term: term,
+		run:  run,
+	}
+}
+
+func (cmds *CmdMap) Stop(key string) {
+	cmds.jobs[key].term <- struct{}{}
+	delete(cmds.jobs, key)
+}
+
+func (cmds *CmdMap) StopAll() {
+	for _, job := range cmds.jobs {
+		job.term <- struct{}{}
+	}
+	cmds.jobs = make(map[string]*Job)
 }

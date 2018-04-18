@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -12,21 +11,27 @@ const (
 
 func main() {
 	var wg sync.WaitGroup
+	var tfGenCmd = []string{"./tfgen", "--host", "127.0.0.1:50051",
+		"--out", config.outdir, "--rando"}
 
 	// grpc server - pubsub connection with running python scripts
-	server := NewManager(grpcPort)
+	cmds := NewCronMap()
+	server := NewManager(grpcPort, cmds)
 
 	// start running tensorflow script generator
-	job := NewCron(config.schedule)
+	cmds.AddCmd("", func() []string {
+		return tfGenCmd
+	}, config.freq)
 
 	// http server - client-side controller
 	ctrl := NewController(restPort)
 	ctrl.mgr = server
-	ctrl.job = job
+	ctrl.cmds = cmds
 
 	wg.Add(2)
-	go server.Start(wg)
-	go job.Run()
-	go ctrl.Start(wg)
+	go server.Start(&wg)
+	go ctrl.Start(&wg)
+	go cmds.Run()
+	// runCmd(tfGenCmd[:len(tfGenCmd)-1])
 	wg.Wait()
 }

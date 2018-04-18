@@ -2,14 +2,15 @@ package main
 
 import (
 	"flag"
+	"time"
 
-	"github.com/robfig/cron"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	defaultSchedule = "0 * * * * *"
-	defaultLogLevel = "info"
+	defaultFrequency = "30s"
+	defaultLogLevel  = "info"
+	defaultOutDir    = "tmp"
 )
 
 var (
@@ -17,14 +18,17 @@ var (
 )
 
 type Config struct {
-	schedule cron.Schedule
+	freq   time.Duration
+	outdir string
 }
 
 func init() {
 	level := flag.String("log-level", defaultLogLevel,
 		"Log level: 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'panic'")
-	schedule := flag.String("schedule", defaultSchedule,
-		"Cron schedule: '<second> <minute> <hour> <dom> <month>'")
+	freq := flag.String("freq", defaultFrequency,
+		"Script generation frequency")
+	flag.StringVar(&config.outdir, "outdir", defaultOutDir,
+		"Temporary directory for holding proto and data generating script")
 	flag.Parse()
 
 	// set log level
@@ -34,10 +38,9 @@ func init() {
 	}
 	log.SetLevel(logLevel)
 
-	// register cron job
-	sched, err := cron.Parse(*schedule)
+	dur, err := time.ParseDuration(*freq)
 	if err != nil {
-		log.Fatalf("Cron schedule parsing error: %v", err)
+		log.Fatalf("Failed to parse frequency: %v", err)
 	}
-	config.schedule = sched
+	config.freq = dur
 }

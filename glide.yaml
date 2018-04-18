@@ -1,10 +1,14 @@
 package: github.com/raggledodo/graphmgr
+license: MIT
+owners:
+- name: Ming Kai Chen
+  email: mingkaichen2009@gmail.com
+- name: Randy Dorado
+  email: rododorodo@gmail.com
 import:
-- package: github.com/robfig/cron
 - package: github.com/gorilla/mux
-- package: github.com/sirupsen/logrus
-- package: github.com/robfig/cron
 - package: github.com/sirupsen/logrus
 - package: golang.org/x/net/context
 - package: github.com/golang/protobuf
 - package: github.com/mingkaic/go_tenncor
+- package: github.com/google/uuid

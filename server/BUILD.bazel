@@ -5,25 +5,29 @@ go_library(
     name = "go_default_library",
     srcs = [
         "config.go",
-        "main.go",
         "controller.go",
         "cron.go",
+        "main.go",
         "server.go",
+        "util.go",
     ],
     importpath = "github.com/raggledodo/graphmgr/server",
     visibility = ["//visibility:private"],
     deps = [
+        "//vendor/github.com/google/uuid:go_default_library",
         "//vendor/github.com/gorilla/mux:go_default_library",
         "//vendor/github.com/mingkaic/go_tenncor/graphmgr:go_default_library",
         "//vendor/github.com/mingkaic/go_tenncor/serial:go_default_library",
-        "//vendor/github.com/robfig/cron:go_default_library",
         "//vendor/github.com/sirupsen/logrus:go_default_library",
     ] + GRPC_COMPILE_DEPS,
 )
 
 go_binary(
     name = "server",
-    data = ["//:tfgen"],
+    data = [
+        "//:tfgen", 
+        "@com_github_mingkaic_tenncor//tests/py:tenncorgen"
+    ],
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
