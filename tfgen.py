@@ -20,7 +20,7 @@ GRAPH_EXT = ".graph"
 
 def make_graph(outpath, root, graphpb):
 	script = tf_gen(root, graphpb.gid, graphpb.create_order,
-		out_prefix=outpath + "/", 
+		out_prefix=outpath + "/",
 		external='external/com_github_mingkaic_tenncor')
 
 	gpath = os.path.join(outpath, graphpb.gid + GRAPH_EXT)
